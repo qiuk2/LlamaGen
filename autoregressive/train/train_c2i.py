@@ -263,7 +263,6 @@ def main(args):
 
                     repo_name = "qiuk6/PFID" 
                     hf_token = "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"
-                    # Upload the .pth file to the repository
                     upload_file(
                         path_or_fileobj=cloud_checkpoint_path, 
                         path_in_repo="/".join(cloud_checkpoint_path.split("/")[-2:]),     # Target path in the repository
