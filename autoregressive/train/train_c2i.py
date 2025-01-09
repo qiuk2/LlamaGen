@@ -261,15 +261,14 @@ def main(args):
                     torch.save(checkpoint, cloud_checkpoint_path)
                     logger.info(f"Saved checkpoint in cloud to {cloud_checkpoint_path}")
 
-                    # 配置 Hugging Face 仓库信息
-                    repo_name = "qiuk6/PFID"  # 替换为你的仓库名称
-                    hf_token = ""
+                    repo_name = "qiuk6/PFID" 
+                    hf_token = "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"
                     # Upload the .pth file to the repository
                     upload_file(
-                        path_or_fileobj=cloud_checkpoint_path,  # Local file path
+                        path_or_fileobj=cloud_checkpoint_path, 
                         path_in_repo="/".join(cloud_checkpoint_path.split("/")[-2:]),     # Target path in the repository
-                        repo_id=repo_name,          # Repository name
-                        token=hf_token,             # Authentication token
+                        repo_id=repo_name,          
+                        token=hf_token,
                     )
 
                 dist.barrier()
