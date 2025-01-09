@@ -269,6 +269,7 @@ def main(args):
                         repo_id=repo_name,          
                         token=hf_token,
                     )
+                    logger.info(f"Saved checkpoint in HuggingFace to {"/".join(cloud_checkpoint_path.split("/")[-2:])}")
 
                 dist.barrier()
 
