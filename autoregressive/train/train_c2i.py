@@ -263,7 +263,7 @@ def main(args):
 
                     # 配置 Hugging Face 仓库信息
                     repo_name = "qiuk6/PFID"  # 替换为你的仓库名称
-                    hf_token = "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"
+                    hf_token = ""
                     # Upload the .pth file to the repository
                     upload_file(
                         path_or_fileobj=cloud_checkpoint_path,  # Local file path
