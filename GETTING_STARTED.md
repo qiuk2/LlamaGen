@@ -1,24 +1,20 @@
 ## Getting Started
-### Requirements
-- Linux with Python ≥ 3.7
-- PyTorch ≥ 2.1
-- A100 GPUs
 
-### Train VQVAE models
+### Setup Environment
 ```
-bash scripts/tokenizer/train_vq.sh --cloud-save-path /path/to/cloud_disk --data-path /path/to/imagenet/train --image-size 256 --vq-model VQ-16
+conda env create -f environment.yaml
+conda activate var
 ```
 
-
-### Pre-extract discrete codes of training images
+### Login Wandb
 ```
-bash scripts/autoregressive/extract_codes_c2i.sh --vq-ckpt ./pretrained_models/vq_ds16_c2i.pt --data-path /path/to/imagenet/train --code-path /path/to/imagenet_code_c2i_flip_ten_crop --ten-crop --crop-range 1.1 --image-size 384
-```
-and/or
-``` 
-bash scripts/autoregressive/extract_codes_c2i.sh --vq-ckpt ./pretrained_models/vq_ds16_c2i.pt --data-path /path/to/imagenet/train --code-path /path/to/imagenet_code_c2i_flip_ten_crop_105 --ten-crop --crop-range 1.05 --image-size 384
+wandb login eed03e9548474fc9bccb341783e5704c46647181
 ```
 
+### Train AR models with DDP
+```
+torchrun --nproc_per_node=8 autoregressive/train/train_c2i.py --cloud-save-path path/to/save --code-path /path/to/imagenet_code_c2i_flip_ten_crop --image-size 256 --gpt-model GPT-L --no-local-save --ckpt-every 20000
+```
 
 ### Train AR models with DDP
 Before running, please change `nnodes, nproc_per_node, node_rank, master_addr, master_port` in `.sh`

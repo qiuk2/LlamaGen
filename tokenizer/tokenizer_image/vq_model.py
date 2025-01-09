@@ -59,6 +59,11 @@ class VQModel(nn.Module):
         dec = self.decode(quant)
         return dec, diff
 
+    def img_to_reconstructed_img(self, h, level, noise):
+        h = self.encoder(h)
+        h = self.quant_conv(h)
+        quant = self.quantize.quantize(h, level=level, noise=noise)
+        return self.decode(quant)
 
 
 class Encoder(nn.Module):
@@ -257,6 +262,40 @@ class VectorQuantizer(nn.Module):
         z_q = torch.einsum('b h w c -> b c h w', z_q)
 
         return z_q, (vq_loss, commit_loss, entropy_loss, codebook_usage), (perplexity, min_encodings, min_encoding_indices)
+
+    def quantize(self, z, level, noise):
+        # reshape z -> (batch, height, width, channel) and flatten
+        z = torch.einsum('b c h w -> b h w c', z).contiguous()
+        z_flattened = z.view(-1, self.e_dim)
+        # distances from z to embeddings e_j (z - e)^2 = z^2 + e^2 - 2 e * z
+
+        if self.l2_norm:
+            z = F.normalize(z, p=2, dim=-1)
+            z_flattened = F.normalize(z_flattened, p=2, dim=-1)
+            embedding = F.normalize(self.embedding.weight, p=2, dim=-1)
+        else:
+            embedding = self.embedding.weight
+
+        d = torch.sum(z_flattened ** 2, dim=1, keepdim=True) + \
+            torch.sum(embedding**2, dim=1) - 2 * \
+            torch.einsum('bd,dn->bn', z_flattened, torch.einsum('n d -> d n', embedding))
+
+        _, min_encoding_indices = torch.topk(d, level, dim=1, largest=False)
+        random_prob = torch.rand(min_encoding_indices.shape[0], device=d.device)
+        random_idx = torch.randint(0, level, random_prob.shape, device=d.device)
+        random_idx = torch.where(random_prob < noise, 0, random_idx)
+        min_encoding_indices = min_encoding_indices[torch.arange(min_encoding_indices.size(0)), random_idx]
+        z_q = embedding[min_encoding_indices].view(z.shape)
+
+        # preserve gradients
+        z_q = z + (z_q - z).detach()
+
+        # reshape back to match original input shape
+        z_q = torch.einsum('b h w c -> b c h w', z_q)
+
+        return z_q
+
+
 
     def get_codebook_entry(self, indices, shape=None, channel_first=True):
         # shape = (batch, channel, height, width) if channel_first else (batch, height, width, channel)

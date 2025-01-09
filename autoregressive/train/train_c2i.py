@@ -10,10 +10,16 @@ from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
 from glob import glob
 from copy import deepcopy
-import os
+import os, sys
 import time
 import inspect
 import argparse
+import wandb
+from huggingface_hub import HfApi, upload_file
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, '../..'))
+sys.path.append(project_root)
 
 from utils.logger import create_logger
 from utils.distributed import init_distributed_mode
@@ -82,6 +88,7 @@ def main(args):
         cloud_checkpoint_dir = f"{cloud_results_dir}/{experiment_index:03d}-{model_string_name}/checkpoints"
         os.makedirs(cloud_checkpoint_dir, exist_ok=True)
         logger.info(f"Experiment directory created in cloud at {cloud_checkpoint_dir}")
+        wandb_tracker = wandb.init(project='LlamaGen')
     
     else:
         logger = create_logger(None)
@@ -219,6 +226,12 @@ def main(args):
                 dist.all_reduce(avg_loss, op=dist.ReduceOp.SUM)
                 avg_loss = avg_loss.item() / dist.get_world_size()
                 logger.info(f"(step={train_steps:07d}) Train Loss: {avg_loss:.4f}, Train Steps/Sec: {steps_per_sec:.2f}")
+                if rank == 0:
+                    wandb_tracker.log({
+                        "lr": optimizer.param_groups[0]["lr"],
+                        "train_loss": avg_loss},
+                        step=train_steps
+                    )
                 # Reset monitoring variables:
                 running_loss = 0
                 log_steps = 0
@@ -247,6 +260,18 @@ def main(args):
                     cloud_checkpoint_path = f"{cloud_checkpoint_dir}/{train_steps:07d}.pt"
                     torch.save(checkpoint, cloud_checkpoint_path)
                     logger.info(f"Saved checkpoint in cloud to {cloud_checkpoint_path}")
+
+                    # 配置 Hugging Face 仓库信息
+                    repo_name = "qiuk6/PFID"  # 替换为你的仓库名称
+                    hf_token = "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"
+                    # Upload the .pth file to the repository
+                    upload_file(
+                        path_or_fileobj=cloud_checkpoint_path,  # Local file path
+                        path_in_repo="/".join(cloud_checkpoint_path.split("/")[-2:]),     # Target path in the repository
+                        repo_id=repo_name,          # Repository name
+                        token=hf_token,             # Authentication token
+                    )
+
                 dist.barrier()
 
     model.eval()  # important! This disables randomized embedding dropout

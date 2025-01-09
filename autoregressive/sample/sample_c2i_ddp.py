@@ -7,11 +7,15 @@ import torch.nn.functional as F
 import torch.distributed as dist
 
 from tqdm import tqdm
-import os
+import os, sys
 from PIL import Image
 import numpy as np
 import math
 import argparse
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, '../..'))
+sys.path.append(project_root)
 
 from tokenizer.tokenizer_image.vq_model import VQ_models
 from autoregressive.models.gpt import GPT_models
@@ -166,7 +170,7 @@ if __name__ == "__main__":
     parser.add_argument("--from-fsdp", action='store_true')
     parser.add_argument("--cls-token-num", type=int, default=1, help="max token number of condition input")
     parser.add_argument("--precision", type=str, default='bf16', choices=["none", "fp16", "bf16"]) 
-    parser.add_argument("--compile", action='store_true', default=True)
+    parser.add_argument("--compile", action='store_true', default=False)
     parser.add_argument("--vq-model", type=str, choices=list(VQ_models.keys()), default="VQ-16")
     parser.add_argument("--vq-ckpt", type=str, default=None, help="ckpt path for vq model")
     parser.add_argument("--codebook-size", type=int, default=16384, help="codebook size for vector quantization")
