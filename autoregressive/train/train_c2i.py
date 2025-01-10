@@ -265,7 +265,7 @@ def main(args):
                     hf_token = "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"
                     upload_file(
                         path_or_fileobj=cloud_checkpoint_path, 
-                        path_in_repo="/".join(cloud_checkpoint_path.split("/")[-2:]),     # Target path in the repository
+                        path_in_repo="/".join(cloud_checkpoint_path.split("/")[-5:]),     # Target path in the repository
                         repo_id=repo_name,          
                         token=hf_token,
                     )
