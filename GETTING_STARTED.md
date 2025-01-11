@@ -16,6 +16,16 @@ wandb login eed03e9548474fc9bccb341783e5704c46647181
 torchrun --nproc_per_node=8 autoregressive/train/train_c2i.py --cloud-save-path path/to/save --code-path /path/to/imagenet_code_c2i_flip_ten_crop --image-size 256 --gpt-model GPT-L --no-local-save --ckpt-every 20000
 ```
 
+
+### script for running adobe server
+```
+python setup.py --target_folder xxx
+python run.py --target_folder xxx
+```
+
+where xxx selected from [VQGAN, VQGAN-LC, IBQ, 1d-tokenizer]
+
+
 ### Train AR models with DDP
 Before running, please change `nnodes, nproc_per_node, node_rank, master_addr, master_port` in `.sh`
 ```
