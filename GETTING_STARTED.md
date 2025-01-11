@@ -18,7 +18,7 @@ torchrun --nproc_per_node=8 autoregressive/train/train_c2i.py --cloud-save-path 
 
 
 ### script for running adobe server
-## First need to change the config.py '''path/to/private/key'''
+First need to change the config.py path/to/private_key to your own path
 
 ```
 python setup.py --target_folder xxx
