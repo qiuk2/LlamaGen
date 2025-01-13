@@ -73,6 +73,9 @@ def main(args):
     torch.cuda.set_device(device)
 
     # Setup an experiment folder:
+    if args.results_dir == '1d-tokenizer':
+        args.vocab_size = 8192
+        
     if rank == 0:
         os.makedirs(args.results_dir, exist_ok=True)  # Make results folder (holds all experiment subfolders)
         experiment_index = len(glob(f"{args.results_dir}/*"))
