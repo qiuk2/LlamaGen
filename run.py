@@ -4,7 +4,7 @@ import ray
 import argparse
 
 parser = argparse.ArgumentParser(description="Download and extract a specific folder from Hugging Face dataset repository.")
-parser.add_argument("--target_folder", type=str, required=True, choices=["VQGAN", '1d-tokenizer', 'VQGAN-LC', 'IBQ'], help="The specific subfolder to download and extract.")
+parser.add_argument("--target-folder", type=str, nargs='+', required=True, choices=['VQGAN', '1d-tokenizer', 'VQGAN-LC', 'IBQ'], help="The specific subfolder to download and extract.")
 args = parser.parse_args()
 
 ray.init()
@@ -16,12 +16,15 @@ master_ip = master_ip.replace("\n", "")
 
 ## training command and launch
 #TORCH_DISTRIBUTED_DEBUG=DETAIL NCCL_DEBUG=INFO
-cmd = ('nohup torchrun --nproc_per_node=8 --nnodes=1 --node_rank=0 --master_addr=master_ip --master_port=12345 '
-       'autoregressive/train/train_c2i.py '
-       f'--cloud-save-path {args.target_folder} --code-path /mnt/localssd/imagenet_code_c2i_flip_ten_crop --image-size 256 --gpt-model GPT-L --no-local-save --ckpt-every 20000 ')
+training_command = """conda activate var; cd LlamaGen; git pull origin main;"""
+for target_folder in args.target_folder:
+    cmd = ('nohup torchrun --nproc_per_node=8 --nnodes=1 --node_rank=0 --master_addr=master_ip --master_port=12345 '
+           'autoregressive/train/train_c2i.py '
+            f'--cloud-save-path {target_folder} --code-path /mnt/localssd/imagenet_code_c2i_flip_ten_crop --image-size 256 --gpt-model GPT-L --no-local-save --ckpt-every 20000 ')
+    training_command += f"""{cmd} > train_output.out 2>&1 & ; """
 
+print(training_command)
 # 'torchrun --nproc_per_node=8 --nnodes=1 --node_rank=0 inference.py --data_path /mnt/localssd/ImageNet2012/ --workers 12 --encoder_model vit_base_patch14_dinov2.lvd142m  --decoder_model vit_base_patch14_dinov2.lvd142m --product_quant 2 --semantic_guide dinov2 --num_latent_tokens 121 --codebook_embed_dim 32 --codebook_size 4096  --v_patch_nums 1 1 2 3 3 4 5 6 8 11 --pn 1_1_2_3_3_4_5_6_8_11 --patch_size 11 --sem_half True --cfg 3.0'
-training_command = f"""conda activate var; cd LlamaGen; {cmd} > train_output.out 2>&1 &"""
 training_command = training_command.replace('master_ip', master_ip)
 training_command = training_command.replace('nnodes=1', f'nnodes={num_nodes}')
 training_command = training_command.replace('nproc_per_node=8', f'nproc_per_node={num_gpus}')

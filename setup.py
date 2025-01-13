@@ -4,7 +4,7 @@ import ray
 import argparse
 
 parser = argparse.ArgumentParser(description="Download and extract a specific folder from Hugging Face dataset repository.")
-parser.add_argument("--target_folder", type=str, required=True, choices=["VQGAN", '1d-tokenizer', 'VQGAN-LC', 'IBQ'], help="The specific subfolder to download and extract.")
+parser.add_argument("--target-folder", type=str, nargs='+', required=True, choices=["VQGAN", '1d-tokenizer', 'VQGAN-LC', 'IBQ'], help="The specific subfolder to download and extract.")
 args = parser.parse_args()
 
 ray.init()
@@ -32,7 +32,8 @@ def mfm_setup(i):
     run_command('cd LlamaGen; conda env create -f environment.yml ', i)
 
     # prepare data
-    run_command(f'conda activate var; cd LlamaGen; python prepare_data.py --target_folder {args.target_folder}', i)
+    for target_folder in args.target_folder:
+        run_command(f'conda activate var; cd LlamaGen; python prepare_data.py --target_folder {target_folder}', i)
 
 
 futures = [mfm_setup.remote(i) for i in range(num_nodes)]
