@@ -73,7 +73,7 @@ def main(args):
     torch.cuda.set_device(device)
 
     # Setup an experiment folder:
-    if args.results_dir == '1d-tokenizer':
+    if args.cloud_save_path == '1d-tokenizer':
         args.vocab_size = 8192
         
     if rank == 0:
