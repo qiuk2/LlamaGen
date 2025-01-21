@@ -75,6 +75,12 @@ def main(args):
     # Setup an experiment folder:
     if args.cloud_save_path == '1d-tokenizer':
         args.vocab_size = 8192
+    elif args.cloud_save_path == 'IBQ-1024':
+        args.vocab_size = 1024
+    elif args.cloud_save_path == 'IBQ-8192':
+        args.vocab_size = 8192
+    elif args.cloud_save_path == 'MaskGIT':
+        args.vocab_size = 1024
         
     if rank == 0:
         os.makedirs(args.results_dir, exist_ok=True)  # Make results folder (holds all experiment subfolders)
