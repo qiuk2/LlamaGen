@@ -4,7 +4,7 @@ from huggingface_hub import snapshot_download
 import argparse
 
 parser = argparse.ArgumentParser(description="Download and extract a specific folder from Hugging Face dataset repository.")
-parser.add_argument("--target_folder", type=str, required=True, choices=["VQGAN", '1d-tokenizer', 'VQGAN-LC', 'IBQ'], help="The specific subfolder to download and extract.")
+parser.add_argument("--target_folder", type=str, required=True, help="The specific subfolder to download and extract.")
 args = parser.parse_args()
 
 # 配置
