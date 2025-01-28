@@ -26,6 +26,8 @@ local_dir = os.path.join(local_dir, target_folder)
 
 for subfolder1 in os.listdir(local_dir):
     for subfolder2 in os.listdir(os.path.join(local_dir, subfolder1)):
+        if zip_file[-4:] != '.zip':
+            continue
         zip_file = os.path.join(local_dir, subfolder1, subfolder2)
         output_dir = zip_file[:-4]
         os.makedirs(output_dir, exist_ok=True)
